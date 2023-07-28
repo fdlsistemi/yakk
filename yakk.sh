@@ -41,7 +41,7 @@ NODE_DNS1="8.8.8.8"                                                 # Current no
 NODE_DNS2="8.8.4.4"                                                 # Current node second DNS server
 CP_NODE_IP="172.20.10.41"                                           # Control Plane Node IP Address
 CP_NODE_PWD="VMware1!VMware1!"                                      # Contorl Plane Node root password
-GITHUB_API_TOKEN_VAR=""                                             # Get your GitHub token at https://github.com/settings/tokens
+GITHUB_API_TOKEN_VAR=""                                             # [Optional] used by lastversion to increase GitHub API rate limits – See https://github.com/settings/tokens
 HELM_TIMEOUT="30m0s"                                                # A Go duration value for Helm to wait for all Pods to be in a ready state, PVCs are bound, Deployments have minimum 
                                                                     # (Desired minus maxUnavailable) Pods in ready state and Services have an IP address (and Ingress if a LoadBalancer) 
                                                                     # before marking the release as successful. If timeout is reached, the release will be marked as FAILED.
