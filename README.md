@@ -9,4 +9,4 @@ I created mine. It all started as self-practice to learn how to setup Kubernetes
 
 The starting point was using a given Linux distro we – when we deal with VMware products – know very well: Photon OS, “a Linux based, open source, security-hardened, enterprise grade appliance operating system that is purpose built for Cloud and Edge applications” (the description was promising).
 
-For the script full description and usage instructions, check <a href="https://www.fdlsistemi.com" target="_blank" rel="noopener noreferrer">https://www.fdlsistemi.com</a>.
+For the script full description and usage instructions, check <a href="https://www.fdlsistemi.com/yak2/" target="_blank" rel="noopener noreferrer">https://www.fdlsistemi.com/yak2/</a>.
