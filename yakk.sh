@@ -1,6 +1,22 @@
 #!/bin/bash
-# Author Fabrizio de Luca
+# YAK2 - Yet Another Kubernetes Kickstart (YAKK –> YAK2)
+# Copyright (C) 2023  Fabrizio de Luca
 # Website: www.fdlsistemi.com
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
 
 # ANSI Escape Sequences: Colours and Cursor Movement - Ref. https://tldp.org/HOWTO/Bash-Prompt-HOWTO/x329.html
 lired='\033[1;31m'    # bold and light red
@@ -17,7 +33,7 @@ bkcol='\033[100D'     # move the cursor backward 100 columns
 # Here you can optionally set the variables default values
 LOG_FILE_NAME="yakk-"$(date +%Y.%m.%d-%H.%M.%S-%Z)".log"            # Deployment log file name
 NODE_HOSTNAME=""                                                    # Current node hostname
-NODE_DOMAIN="fdlsistemi.local"                                      # Current node domain
+NODE_DOMAIN="yourdomain.local"                                      # Current node domain
 NODE_IP=""                                                          # Current node IP address
 NODE_NETMASK="/24"                                                  # Current node netmask in /XX format
 NODE_GATEWAY="172.20.10.2"                                          # Current node gateway IP address
@@ -25,7 +41,7 @@ NODE_DNS1="8.8.8.8"                                                 # Current no
 NODE_DNS2="8.8.4.4"                                                 # Current node second DNS server
 CP_NODE_IP="172.20.10.41"                                           # Control Plane Node IP Address
 CP_NODE_PWD="VMware1!VMware1!"                                      # Contorl Plane Node root password
-GITHUB_API_TOKEN_VAR=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       # <<<=== REMOVE REMOVE REMOVE (FDLSISTEMI GitHub API token - EXPIRES Aug 27 2023) ===>>>
+GITHUB_API_TOKEN_VAR=""                                             # Get your GitHub token at https://github.com/settings/tokens
 HELM_TIMEOUT="30m0s"                                                # A Go duration value for Helm to wait for all Pods to be in a ready state, PVCs are bound, Deployments have minimum 
                                                                     # (Desired minus maxUnavailable) Pods in ready state and Services have an IP address (and Ingress if a LoadBalancer) 
                                                                     # before marking the release as successful. If timeout is reached, the release will be marked as FAILED.
