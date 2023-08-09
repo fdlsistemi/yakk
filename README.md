@@ -11,7 +11,7 @@ The starting point was using a given Linux distro we – when we deal with VMwar
 
 For the script full description and usage instructions, check <a href="https://www.fdlsistemi.com/yak2/" target="_blank" rel="noopener noreferrer">https://www.fdlsistemi.com/yak2/</a>.
 
-Script - with the following components releases - has been tested last on: August 9th 2023.
+Script - with the following components versions - has been tested last on: August 9th 2023.
 <table>
   <tr><th>Component</th><th>Version</th></tr>
   <tr><td>PhotonOS 5.0 kernel</td><td>6.1.41-1.ph5-esx</td></tr>
