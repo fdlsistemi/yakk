@@ -10,3 +10,17 @@ I created mine. It all started as self-practice to learn how to setup Kubernetes
 The starting point was using a given Linux distro we – when we deal with VMware products – know very well: Photon OS, “a Linux based, open source, security-hardened, enterprise grade appliance operating system that is purpose built for Cloud and Edge applications” (the description was promising).
 
 For the script full description and usage instructions, check <a href="https://www.fdlsistemi.com/yak2/" target="_blank" rel="noopener noreferrer">https://www.fdlsistemi.com/yak2/</a>.
+
+Script - with the following components releases - has been tested last on: August 9th 2023.
+<table>
+  <tr><th>Component</th><th>Version</th></tr>
+  <tr><td>PhotonOS 5.0 kernel</td><td>6.1.41-1.ph5-esx</td></tr>
+  <tr><td>containerd</td><td>1.7.3</td></tr>
+  <tr><td>runc</td><td>1.1.8</td></tr>
+  <tr><td>CNI plugins</td><td>1.3.0</td></tr>
+  <tr><td>Kubernetes</td><td>1.27.4</td></tr>
+  <tr><td>Antrea</td><td>1.13.0</td></tr>
+  <tr><td>NFS subdir</td><td>4.0.18</td></tr>
+  <tr><td>MetalLB</td><td>0.13.10</td></tr>
+  <tr><td>Kubeapps</td><td>2.8.0</td></tr>
+</table>
