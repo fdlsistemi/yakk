@@ -11,7 +11,7 @@ The starting point was using a given Linux distro we – when we deal with VMwar
 
 For the script full description and usage instructions, check <a href="https://www.fdlsistemi.com/yak2/" target="_blank" rel="noopener noreferrer">https://www.fdlsistemi.com/yak2/</a>.
 
-Script - installing the following components versions - has been tested last on: August 9th 2023.
+Script - installing the following components versions - has been tested last on: September 23rd 2023.
 <table>
   <tr><th colspan="100%">YAK<sup>2</sup> Components Versions Tests History</th></tr>
   <tr><th>Test Date</th><th>09/23/2023</th><th>08/09/2023</th><th>07/28/2023</th></tr>
