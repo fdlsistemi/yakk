@@ -593,14 +593,17 @@ if [ $REPLY != 3 ]; then     # If NFS Server then skip KUBELET, KUBEADM & KUBECT
   echo -e "${green}################################################################################################### ${reset}"
   echo -e "${white} KUBELET, KUBEADM & KUBECTL INSTALLATION                                                  # START # ${reset}\n"
 
+# There's a dedicated package repository for each Kubernetes minor version on the new package repositories hosted at pkgs.k8s.io - https://kubernetes.io/blog/2023/08/15/pkgs-k8s-io-introduction/
+VER_K8S_REPO=$(echo $VER_K8S | grep -Eo '[0-9]\.[0-9]+')
+
 cat <<EOF | tee /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
 name=Kubernetes
-baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-\$basearch
+baseurl=https://pkgs.k8s.io/core:/stable:/v$VER_K8S_REPO/rpm/
 enabled=1
 gpgcheck=1
-gpgkey=https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
-exclude=kubelet kubeadm kubectl
+gpgkey=https://pkgs.k8s.io/core:/stable:/v$VER_K8S_REPO/rpm/repodata/repomd.xml.key
+exclude=kubelet kubeadm kubectl cri-tools kubernetes-cni
 EOF
 
   if [ $([ -s /etc/yum.repos.d/kubernetes.repo ]; echo $?) == 0 ]; then
