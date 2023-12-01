@@ -11,17 +11,17 @@ The starting point was using a given Linux distro we – when we deal with VMwar
 
 For the script full description and usage instructions, check <a href="https://www.fdlsistemi.com/yak2/" target="_blank" rel="noopener noreferrer">https://www.fdlsistemi.com/yak2/</a>.
 
-Script - installing the following components versions - has been tested last on: October 30th 2023.
+Script - installing the following components versions - has been tested last on: December 1st 2023.
 <table>
   <tr><th colspan="100%">YAK<sup>2</sup> Components Versions Tests History</th></tr>
-  <tr><th>Test Date</th><th>30/10/2023</th><th>09/23/2023</th><th>08/09/2023</th><th>07/28/2023</th></tr>
-  <tr><td>PhotonOS 5.0 kernel</td><td>6.1.56-9.ph5-esx</td><td>6.1.45-8.ph5-esx</td><td>6.1.41-1.ph5-esx</td><td>6.1.10-10.ph5-esx</td></tr>
-  <tr><td>containerd</td><td>1.7.8</td><td>1.7.6</td><td>1.7.3</td><td>1.7.2</td></tr>
-  <tr><td>runc</td><td>1.1.9</td><td>1.1.9</td><td>1.1.8</td><td>1.1.7</td></tr>
-  <tr><td>CNI plugins</td><td>1.3.0</td><td>1.3.0</td><td>1.3.0</td><td>1.3.0</td></tr>
-  <tr><td>Kubernetes</td><td>1.28.3</td><td>1.28.2</td><td>1.27.4</td><td>1.27.3</td></tr>
-  <tr><td>Antrea</td><td>1.14.0</td><td>1.13.1</td><td>1.13.0</td><td>1.12.1</td></tr>
-  <tr><td>NFS subdir</td><td>4.0.18</td><td>4.0.18</td><td>4.0.18</td><td>4.0.18</td></tr>
-  <tr><td>MetalLB</td><td>0.13.12</td><td>0.13.11</td><td>0.13.10</td><td>0.13.10</td></tr>
-  <tr><td>Kubeapps</td><td>2.9.0</td><td>2.9.0</td><td>2.8.0</td><td>2.8.0</td></tr>
+  <tr><th>Test Date</th><th>12/01/2023</th><th>10/30/2023</th><th>09/23/2023</th><th>08/09/2023</th><th>07/28/2023</th></tr>
+  <tr><td>PhotonOS 5.0 kernel</td><td>6.1.62-8.ph5-esx</td><td>6.1.56-9.ph5-esx</td><td>6.1.45-8.ph5-esx</td><td>6.1.41-1.ph5-esx</td><td>6.1.10-10.ph5-esx</td></tr>
+  <tr><td>containerd</td><td>1.7.10</td><td>1.7.8</td><td>1.7.6</td><td>1.7.3</td><td>1.7.2</td></tr>
+  <tr><td>runc</td><td>1.1.10</td><td>1.1.9</td><td>1.1.9</td><td>1.1.8</td><td>1.1.7</td></tr>
+  <tr><td>CNI plugins</td><td>1.3.0</td><td>1.3.0</td><td>1.3.0</td><td>1.3.0</td><td>1.3.0</td></tr>
+  <tr><td>Kubernetes</td><td>1.28.4</td><td>1.28.3</td><td>1.28.2</td><td>1.27.4</td><td>1.27.3</td></tr>
+  <tr><td>Antrea</td><td>1.14.1</td><td>1.14.0</td><td>1.13.1</td><td>1.13.0</td><td>1.12.1</td></tr>
+  <tr><td>NFS subdir</td><td>4.0.18</td><td>4.0.18</td><td>4.0.18</td><td>4.0.18</td><td>4.0.18</td></tr>
+  <tr><td>MetalLB</td><td>0.13.12</td><td>0.13.12</td><td>0.13.11</td><td>0.13.10</td><td>0.13.10</td></tr>
+  <tr><td>Kubeapps</td><td>2.9.0</td><td>2.9.0</td><td>2.9.0</td><td>2.8.0</td><td>2.8.0</td></tr>
 </table>
