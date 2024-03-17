@@ -284,7 +284,7 @@ if [ $REPLY = 1 ]; then     # Control Plane node
   my_logger INFO "Installing package pip: the Package Installer for Python." NONE
   wget https://bootstrap.pypa.io/get-pip.py -a $LOG_FILE_NAME --no-verbose --show-progress; echo "" >> $LOG_FILE_NAME
   
-  # 2024.03.17: FIX for an apparently forgotten and empty folder in Python 3.11 which causes "python setup.py egg_info" - part of pip installation process - to fail with message "UserWarning: Unknown distribution option 'test_suite'"
+  # 2024.03.17: FIX for a Python 3.11 folder that may end up empty and cause "python setup.py egg_info" - part of pip installation process - to fail with message "UserWarning: Unknown distribution option 'test_suite'"
   DIR="/usr/lib/python3.11/site-packages/setuptools-65.5.0.dist-info"
   if [ -d "$DIR" ]; then
     if [ -z "$(ls -A $DIR)" ]; then
