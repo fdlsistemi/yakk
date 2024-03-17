@@ -1,6 +1,6 @@
 #!/bin/bash
 # YAK2 - Yet Another Kubernetes Kickstart (YAKK –> YAK2)
-# Copyright (C) 2023  Fabrizio de Luca
+# Copyright (C) 2023-2024  Fabrizio de Luca
 # Website: www.fdlsistemi.com
 
 # This program is free software: you can redistribute it and/or modify
@@ -283,6 +283,21 @@ fi
 if [ $REPLY = 1 ]; then     # Control Plane node
   my_logger INFO "Installing package pip: the Package Installer for Python." NONE
   wget https://bootstrap.pypa.io/get-pip.py -a $LOG_FILE_NAME --no-verbose --show-progress; echo "" >> $LOG_FILE_NAME
+  
+  # 2024.03.17: FIX for an apparently forgotten and empty folder in Python 3.11 which causes "python setup.py egg_info" - part of pip installation process - to fail with message "UserWarning: Unknown distribution option 'test_suite'"
+  DIR="/usr/lib/python3.11/site-packages/setuptools-65.5.0.dist-info"
+  if [ -d "$DIR" ]; then
+    if [ -z "$(ls -A $DIR)" ]; then
+       rmdir $DIR
+       my_logger INFO "Folder $DIR was FOUND EMPTY; hence, it has been removed to avoid <<python setup.py egg_info>> - part of pip installation process - to fail with message: <<UserWarning: Unknown distribution option 'test_suite'>>." QUIET
+    else
+       my_logger INFO "Folder $DIR was FOUND NOT EMPTY; hence, no action has been taken (see yakk.sh script)." QUIET
+    fi
+  else
+    my_logger INFO "Folder $DIR was NOT FOUND; hence, no action has been taken (see yakk.sh script)." QUIET
+  fi
+  # END FIX
+
   python get-pip.py --root-user-action=ignore >> $LOG_FILE_NAME; echo "" >> $LOG_FILE_NAME
 
   my_logger INFO "Installing package lastversion: a tiny command line utility to retrieve the latest stable version of a GitHub project. - Ref. https://github.com/dvershinin/lastversion" NONE
