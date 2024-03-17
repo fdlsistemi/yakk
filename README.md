@@ -11,19 +11,19 @@ The starting point was using a given Linux distro we – when we deal with VMwar
 
 For the script full description and usage instructions, check <a href="https://www.fdlsistemi.com/yak2/" target="_blank" rel="noopener noreferrer">https://www.fdlsistemi.com/yak2/</a>.
 
-Script - installing the following components versions - has been tested last on: January 19th 2024.
+Script - installing the following components versions - has been tested last on: March 17th 2024.
 <table>
   <tr><th colspan="100%">YAK<sup>2</sup> Components Versions Tests History</th></tr>
-  <tr><th>Test Date</th><th>01/19/2024</th></tr>
-  <tr><td>PhotonOS 5.0 kernel</td><td>6.1.70-1.ph5-esx</td></tr>
-  <tr><td>containerd</td><td>1.7.12</td></tr>
-  <tr><td>runc</td><td>1.1.11</td></tr>
-  <tr><td>CNI plugins</td><td>1.4.0</td></tr>
-  <tr><td>Kubernetes</td><td>1.29.1</td></tr>
-  <tr><td>Antrea</td><td>1.14.1</td></tr>
-  <tr><td>NFS subdir</td><td>4.0.18</td></tr>
-  <tr><td>MetalLB</td><td>0.13.12</td></tr>
-  <tr><td>Kubeapps</td><td>2.9.0</td></tr>
+  <tr><th>Test Date</th><th>01/19/2024</th><th>03/17/2024</th></tr>
+  <tr><td>PhotonOS 5.0 kernel</td><td>6.1.70-1.ph5-esx</td><td>6.1.79-2.ph5-esx</td></tr>
+  <tr><td>containerd</td><td>1.7.12</td><td>1.7.14</td></tr>
+  <tr><td>runc</td><td>1.1.11</td><td>1.1.12</td></tr>
+  <tr><td>CNI plugins</td><td>1.4.0</td><td>1.4.1</td></tr>
+  <tr><td>Kubernetes</td><td>1.29.1</td><td>1.29.3</td></tr>
+  <tr><td>Antrea</td><td>1.14.1</td><td>1.15.0</td></tr>
+  <tr><td>NFS subdir</td><td>4.0.18</td><td>4.0.18</td></tr>
+  <tr><td>MetalLB</td><td>0.13.12</td><td>0.14.3</td></tr>
+  <tr><td>Kubeapps</td><td>2.9.0</td><td>2.9.0</td></tr>
 </table>
 
 <table>
