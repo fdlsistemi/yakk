@@ -42,6 +42,8 @@ NODE_DNS2="8.8.4.4"                                                 # Current no
 CP_NODE_IP="172.20.10.41"                                           # Control Plane Node IP Address
 CP_NODE_PWD="VMware1!VMware1!"                                      # Contorl Plane Node root password
 GITHUB_API_TOKEN_VAR=""                                             # [Optional] used by lastversion to increase GitHub API rate limits – See https://github.com/settings/tokens
+POD_NETWORK_CIDR="10.244.0.0/16"                                    # Used by kubeadm init. Specify range of IP addresses for the pod network.
+SVC_NETWORK_CIDR="10.96.0.0/16"                                     # Used by kubeadm init. Specify range of IP addresses for the service network.
 HELM_TIMEOUT="30m0s"                                                # A Go duration value for Helm to wait for all Pods to be in a ready state, PVCs are bound, Deployments have minimum 
                                                                     # (Desired minus maxUnavailable) Pods in ready state and Services have an IP address (and Ingress if a LoadBalancer) 
                                                                     # before marking the release as successful. If timeout is reached, the release will be marked as FAILED.
@@ -281,7 +283,46 @@ if [ $REPLY != 3 ]; then     # If NFS Server then skip
 fi
 
 if [ $REPLY = 1 ]; then     # Control Plane node
-  my_logger INFO "Installing package pip: the Package Installer for Python." NONE
+  echo -e "\n"
+  while [[ true ]]; do
+    echo -en "${green}Kubernetes Cluster Pod Network [${white}$POD_NETWORK_CIDR${green}]: ${svcur}${white}${rs2nd}"; read -p '' TMP; if [ ! -z $TMP ]; then POD_NETWORK_CIDR=$TMP; fi;
+    if [[ ! -z $POD_NETWORK_CIDR ]]; then POD_NETWORK=${POD_NETWORK_CIDR%/*}; POD_CIDR=/${POD_NETWORK_CIDR#*/}; fi;
+    if [[ -z $POD_NETWORK_CIDR ]]; then echo -en "${recur}${lired}VALUE CANNOT BE EMPTY!${bkcol}"; sleep 1; 
+    elif [[ ! -z $POD_NETWORK_CIDR ]] && valid_ip $POD_NETWORK && [[ $POD_CIDR =~ ^(\/([0-9]|[1-2][0-9]|3[0-2]))?$ ]]; then break; 
+    else echo -en "${recur}${lired}NOT A VALID NETWORK DEFINITION!${bkcol}"; POD_NETWORK_CIDR=""; sleep 1; 
+    fi;
+  done
+  my_logger INFO "USER INPUT - Kubernetes Cluster Pod Network: $POD_NETWORK_CIDR." QUIET
+
+  while [[ true ]]; do
+    echo -en "${green}Kubernetes Cluster Service Network [${white}$SVC_NETWORK_CIDR${green}]: ${svcur}${white}${rs2nd}"; read -p '' TMP; if [ ! -z $TMP ]; then SVC_NETWORK_CIDR=$TMP; fi;
+    if [[ ! -z $SVC_NETWORK_CIDR ]]; then SVC_NETWORK=${SVC_NETWORK_CIDR%/*}; SVC_CIDR=/${SVC_NETWORK_CIDR#*/}; fi;
+    if [[ -z $SVC_NETWORK_CIDR ]]; then echo -en "${recur}${lired}VALUE CANNOT BE EMPTY!${bkcol}"; sleep 1; 
+    elif [[ ! -z $SVC_NETWORK_CIDR ]] && valid_ip $SVC_NETWORK && [[ $SVC_CIDR =~ ^(\/([0-9]|[1-2][0-9]|3[0-2]))?$ ]]; then break; 
+    else echo -en "${recur}${lired}NOT A VALID NETWORK DEFINITION!${bkcol}"; SVCNETWORK_CIDR=""; sleep 1; 
+    fi;
+  done
+  my_logger INFO "USER INPUT - Kubernetes Cluster Service Network: $SVC_NETWORK_CIDR." QUIET
+
+  echo -e "\n${green}MetalLB LoadBalancer External IP Range:${reset}"
+  while [[ true ]]; do
+    echo -en "${green} - First IP [${white}$METALLB_RANGE_FIRST_IP${green}]: ${svcur}${white}${rs2nd}"; read -p '' TMP; if [ ! -z $TMP ]; then METALLB_RANGE_FIRST_IP=$TMP; fi;
+    if [[ -z $METALLB_RANGE_FIRST_IP ]]; then echo -en "${recur}${lired}VALUE CANNOT BE EMPTY!${bkcol}"; sleep 1; 
+    elif [[ ! -z $METALLB_RANGE_FIRST_IP ]] && valid_ip $METALLB_RANGE_FIRST_IP; then break; 
+    else echo -en "${recur}${lired}NOT A VALID IP ADDRESS!${bkcol}"; METALLB_RANGE_FIRST_IP=""; sleep 1; 
+    fi;
+  done
+  while [[ true ]]; do
+    echo -en "${green} - Last IP [${white}$METALLB_RANGE_LAST_IP${green}]: ${svcur}${white}${rs2nd}"; read -p '' TMP; if [ ! -z $TMP ]; then METALLB_RANGE_LAST_IP=$TMP; fi;
+    if [[ -z $METALLB_RANGE_LAST_IP ]]; then echo -en "${recur}${lired}VALUE CANNOT BE EMPTY!${bkcol}"; sleep 1; 
+    elif [[ ! -z $METALLB_RANGE_LAST_IP ]] && valid_ip $METALLB_RANGE_LAST_IP; then break; 
+    else echo -en "${recur}${lired}NOT A VALID IP ADDRESS!${bkcol}"; METALLB_RANGE_LAST_IP=""; sleep 1; 
+    fi;
+  done
+  my_logger INFO "USER INPUT - Provided MetalLB LoadBalancer External IP Range: $METALLB_RANGE_FIRST_IP - $METALLB_RANGE_LAST_IP." QUIET
+
+  echo -e "\n"
+  my_logger INFO "Installing package pip: the Package Installer for Python." NL_PRE
   wget https://bootstrap.pypa.io/get-pip.py -a $LOG_FILE_NAME --no-verbose --show-progress; echo "" >> $LOG_FILE_NAME
   
   # 2024.03.17: FIX for a Python 3.11 folder that may end up empty and cause "python setup.py egg_info" - part of pip installation process - to fail with message "UserWarning: Unknown distribution option 'test_suite'"
@@ -428,23 +469,7 @@ if [ $REPLY = 1 ]; then     # Control Plane node
   echo -e " - Selected ${green}NFS subdir${reset} version:  ${white}$VER_SUBDIR${reset}"     && my_logger INFO "USER INPUT - Selected Package: subdir $VER_SUBDIR" QUIET
   echo -e " - Selected ${green}MetalLB${reset} version:     ${white}$VER_METALLB${reset}"    && my_logger INFO "USER INPUT - Selected Package: metallb $VER_METALLB" QUIET
   echo -e " - Selected ${green}Kubeapps${reset} version:    ${white}$VER_KUBEAPPS${reset}"   && my_logger INFO "USER INPUT - Selected Package: kubeapps $VER_KUBEAPPS" QUIET
-
-  echo -e "\n${green}MetalLB LoadBalancer External IP Range:${reset}"
-  while [[ true ]]; do
-    echo -en "${green} - First IP [${white}$METALLB_RANGE_FIRST_IP${green}]: ${svcur}${white}${rs2nd}"; read -p '' TMP; if [ ! -z $TMP ]; then METALLB_RANGE_FIRST_IP=$TMP; fi;
-    if [[ -z $METALLB_RANGE_FIRST_IP ]]; then echo -en "${recur}${lired}VALUE CANNOT BE EMPTY!${bkcol}"; sleep 1; 
-    elif [[ ! -z $METALLB_RANGE_FIRST_IP ]] && valid_ip $METALLB_RANGE_FIRST_IP; then break; 
-    else echo -en "${recur}${lired}NOT A VALID IP ADDRESS!${bkcol}"; METALLB_RANGE_FIRST_IP=""; sleep 1; 
-    fi;
-  done
-  while [[ true ]]; do
-    echo -en "${green} - Last IP [${white}$METALLB_RANGE_LAST_IP${green}]: ${svcur}${white}${rs2nd}"; read -p '' TMP; if [ ! -z $TMP ]; then METALLB_RANGE_LAST_IP=$TMP; fi;
-    if [[ -z $METALLB_RANGE_LAST_IP ]]; then echo -en "${recur}${lired}VALUE CANNOT BE EMPTY!${bkcol}"; sleep 1; 
-    elif [[ ! -z $METALLB_RANGE_LAST_IP ]] && valid_ip $METALLB_RANGE_LAST_IP; then break; 
-    else echo -en "${recur}${lired}NOT A VALID IP ADDRESS!${bkcol}"; METALLB_RANGE_LAST_IP=""; sleep 1; 
-    fi;
-  done
-  my_logger INFO "USER INPUT - Provided MetalLB LoadBalancer External IP Range: $METALLB_RANGE_FIRST_IP - $METALLB_RANGE_LAST_IP." QUIET
+  sleep 2
 fi
 
 if [ $REPLY = 2 ]; then    # Worker nodes
@@ -491,35 +516,50 @@ echo -e "${green}###############################################################
 echo -e "${white} IPTABLES CONFIGURATION                                                                   # START # ${reset}\n"
 
 if [ $REPLY = 1 ]; then     # Control Plane node
-  iptables -A INPUT -p tcp --dport 6443 -j ACCEPT            # Kubernetes API server
-  iptables -A INPUT -p tcp --dport 2379:2380 -j ACCEPT       # etcd server client API
-  iptables -A INPUT -p tcp --dport 10250 -j ACCEPT           # Kubelet API
-  iptables -A INPUT -p tcp --dport 10259 -j ACCEPT           # kube-scheduler
-  iptables -A INPUT -p tcp --dport 10257 -j ACCEPT           # kube-controller-manager
-  iptables -A INPUT -p tcp --dport 10349:10351 -j ACCEPT     # Antrea
-  iptables -A INPUT -p udp --dport 10351 -j ACCEPT           # Antrea
-  iptables -A INPUT -p tcp --dport 7946 -j ACCEPT            # MetalLB in L2 operating mode
-  iptables -A INPUT -p udp --dport 7946 -j ACCEPT            # MetalLB in L2 operating mode
+### K8S - https://kubernetes.io/docs/reference/networking/ports-and-protocols/
+  # -----------------------------------------------------------------------------------------------------------
+  iptables -A INPUT -p tcp --dport 6443 -j ACCEPT        -m comment --comment "Kubernetes API server"
+  iptables -A INPUT -p tcp --dport 2379:2380 -j ACCEPT   -m comment --comment "etcd server client API"
+  iptables -A INPUT -p tcp --dport 10250 -j ACCEPT       -m comment --comment "Kubelet API"
+  iptables -A INPUT -p tcp --dport 10259 -j ACCEPT       -m comment --comment "kube-scheduler"
+  iptables -A INPUT -p tcp --dport 10257 -j ACCEPT       -m comment --comment "kube-controller-manager"
+  # -----------------------------------------------------------------------------------------------------------
+### ANTREA - https://antrea.io/docs/v2.0.0/docs/network-requirements/
+  iptables -A INPUT -p udp --dport 6081 -j ACCEPT        -m comment --comment "Antrea (geneve)"
+  iptables -A INPUT -p tcp --dport 10349:10351 -j ACCEPT -m comment --comment "Antrea"
+  iptables -A INPUT -p udp --dport 10351 -j ACCEPT       -m comment --comment "Antrea"
+  # -----------------------------------------------------------------------------------------------------------
+### METALLB - https://metallb.universe.tf/#requirements
+  iptables -A INPUT -p tcp --dport 7946 -j ACCEPT        -m comment --comment "MetalLB in L2 operating mode"
+  iptables -A INPUT -p udp --dport 7946 -j ACCEPT        -m comment --comment "MetalLB in L2 operating mode"
+  # -----------------------------------------------------------------------------------------------------------
 elif [ $REPLY = 2 ]; then     # Worker nodes
-  iptables -A INPUT -p tcp --dport 10250 -j ACCEPT           # Kubelet API
-  iptables -A INPUT -p tcp --dport 30000:32767 -j ACCEPT     # NodePort Services
-  iptables -A INPUT -p tcp --dport 10349:10351 -j ACCEPT     # Antrea
-  iptables -A INPUT -p udp --dport 10351 -j ACCEPT           # Antrea
-  iptables -A INPUT -p tcp --dport 7946 -j ACCEPT            # MetalLB in L2 operating mode
-  iptables -A INPUT -p udp --dport 7946 -j ACCEPT            # MetalLB in L2 operating mode
+### K8S - https://kubernetes.io/docs/reference/networking/ports-and-protocols/
+  # -----------------------------------------------------------------------------------------------------------
+  iptables -A INPUT -p tcp --dport 10250 -j ACCEPT       -m comment --comment "Kubelet API"
+  iptables -A INPUT -p tcp --dport 10256 -j ACCEPT       -m comment --comment "kube-proxy"
+  iptables -A INPUT -p tcp --dport 30000:32767 -j ACCEPT -m comment --comment "NodePort Services"
+  # -----------------------------------------------------------------------------------------------------------
+### ANTREA - https://antrea.io/docs/v2.0.0/docs/network-requirements/
+  iptables -A INPUT -p udp --dport 6081 -j ACCEPT        -m comment --comment "Antrea (geneve)"
+  iptables -A INPUT -p tcp --dport 10349:10351 -j ACCEPT -m comment --comment "Antrea"
+  iptables -A INPUT -p udp --dport 10351 -j ACCEPT       -m comment --comment "Antrea"
+  # -----------------------------------------------------------------------------------------------------------
+### METALLB - https://metallb.universe.tf/#requirements
+  iptables -A INPUT -p tcp --dport 7946 -j ACCEPT        -m comment --comment "MetalLB in L2 operating mode"
+  iptables -A INPUT -p udp --dport 7946 -j ACCEPT        -m comment --comment "MetalLB in L2 operating mode"
+  # -----------------------------------------------------------------------------------------------------------
 elif [ $REPLY = 3 ]; then     # NFS Server
-  iptables -A INPUT -p tcp --dport 2049 -j ACCEPT            # NFS Server
+### NSX SERVER
+  iptables -A INPUT -p tcp --dport 2049 -j ACCEPT        -m comment --comment "NFS Server"
+  # -----------------------------------------------------------------------------------------------------------
 fi
 iptables-save > /etc/systemd/scripts/ip4save
 
-my_logger WARNING "Currently kubelet seems to fail in writing rules to iptables, making all Pods and Services unreachable. TEMPORARILY DISABLING IPTABLES AS A (DESPERATE) WORKAROUND." NONE
-my_logger INFO "Disabling the iptables service." NL_PRE
-# systemctl restart iptables
-# iptables -L
-systemctl stop iptables
-systemctl disable iptables
+systemctl restart iptables
+iptables -L
+my_logger INFO "Reloaded iptables with deployment-required rules." NL_PRE
 systemctl status iptables --no-pager >> $LOG_FILE_NAME
-echo "" >> $LOG_FILE_NAME
 sleep 2
 
 echo -e "\n${white}                                                                                            # END # "
@@ -529,12 +569,12 @@ echo -e "${green}###############################################################
 clear
 
 
-if [ $REPLY != 3 ]; then     # If NFS Server then skip CONTAINERD, RUNC AND CNI NETWORK PLUGINS INSTALLATION 
+if [ $REPLY != 3 ]; then     # If NFS Server then skip CONTAINERD, RUNC AND CNI NETWORK PLUGINS INSTALLATION
   echo -e "${green}################################################################################################### ${reset}"
   echo -e "${white} CONTAINERD, RUNC AND CNI NETWORK PLUGINS INSTALLATION                                    # START # ${reset}\n"
 
   my_logger INFO "Removing PhotonOS distro-specific versions of docker, docker-engine and runc." QUIET_NL_PRE
-  tdnf -y remove docker docker-engine runc | tee -a $LOG_FILE_NAME; echo "" >> $LOG_FILE_NAME
+  tdnf -y remove docker docker-cli docker-engine runc | tee -a $LOG_FILE_NAME; echo "" >> $LOG_FILE_NAME
 
   my_logger INFO "Installing package tar: archiving program." NL_PRE
   tdnf -y install tar | tee -a $LOG_FILE_NAME; echo "" >> $LOG_FILE_NAME; echo "" >> $LOG_FILE_NAME
@@ -548,6 +588,25 @@ if [ $REPLY != 3 ]; then     # If NFS Server then skip CONTAINERD, RUNC AND CNI 
   my_logger INFO "Reloading the systemd unit files." QUIET
   systemctl daemon-reload
 
+  containerd config default > /etc/containerd/config.toml
+  sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+
+  my_logger INFO "Trying to find which version of the pause container image is required by Kubernetes $VER_K8S." NL_PRE
+  VER_K8S_MAJOR_MINOR=$(echo $VER_K8S | grep -Eo '[0-9]\.[0-9]+')
+  VER_PAUSE=$(curl -s https://raw.githubusercontent.com/kubernetes/kubernetes/release-${VER_K8S_MAJOR_MINOR}/build/pause/Makefile | grep "TAG ?="  | awk '{print $3}')
+  if [[ ! -z VER_PAUSE ]]; then
+    my_logger INFO "Kubernetes $VER_K8S requires ${white}pause $VER_PAUSE${reset}. Updating config file /etc/containerd/config.toml to make containerd use the Kubernetes-recommended CRI sandbox image." NL_POST
+    sed -i -e "s/registry.k8s.io\/pause:[0-9].[0-9]/registry.k8s.io\/pause:${VER_PAUSE}/" /etc/containerd/config.toml
+  else
+    my_logger WARNING "Unable to fetch a Kubernetes-recommended [TAG ?= X.XX] CRI sandbox image from https://raw.githubusercontent.com/kubernetes/kubernetes/release-${VER_K8S_MAJOR_MINOR}/build/pause/Makefile. Using containerd default." NL_POST
+  fi
+
+  if [ $([ -s /etc/containerd/config.toml ]; echo $?) == 0 ]; then
+    my_logger INFO "Successfully wrote parameters to containerd config file /etc/containerd/config.toml" QUIET
+  else
+    my_logger ERROR "Failed writing parameters to containerd config file /etc/containerd/config.toml" QUIET
+  fi
+
   my_logger INFO "Enabling the containerd service." QUIET
   systemctl enable --now containerd
   systemctl status containerd --no-pager >> $LOG_FILE_NAME
@@ -560,41 +619,6 @@ if [ $REPLY != 3 ]; then     # If NFS Server then skip CONTAINERD, RUNC AND CNI 
   wget https://github.com/containernetworking/plugins/releases/download/v${VER_PLUGINS}/cni-plugins-linux-amd64-v${VER_PLUGINS}.tgz -a $LOG_FILE_NAME --no-verbose --show-progress; echo "" >> $LOG_FILE_NAME
   mkdir -p /opt/cni/bin
   tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v${VER_PLUGINS}.tgz | tee -a $LOG_FILE_NAME; echo "" >> $LOG_FILE_NAME
-
-  my_logger INFO "Trying to find which version of the pause container image is required by Kubernetes $VER_K8S." NL_PRE
-  VER_K8S_MAJOR_MINOR=$(echo $VER_K8S | grep -Eo '[0-9]\.[0-9]+')
-  VER_PAUSE=$(curl -s https://raw.githubusercontent.com/kubernetes/kubernetes/release-${VER_K8S_MAJOR_MINOR}/build/pause/Makefile | grep "TAG ?="  | awk '{print $3}')
-  if [[ ! -z VER_PAUSE ]]; then
-    my_logger INFO " - Kubernetes $VER_K8S requires ${green}pause${reset} version: ${white}$VER_PAUSE${reset}" NL_POST
-    VER_PAUSE_TOML='sandbox_image = "registry.k8s.io/pause:'$VER_PAUSE'"'
-  else
-    my_logger WARNING "Unable to fetch a Kubernetes-recommended [TAG ?= X.XX] CRI sandbox image from https://raw.githubusercontent.com/kubernetes/kubernetes/release-${VER_K8S_MAJOR_MINOR}/build/pause/Makefile. Using containerd default." NL_POST
-  fi
-
-cat <<EOF | tee /etc/containerd/config.toml
-version = 2
-[plugins]
-  [plugins."io.containerd.grpc.v1.cri"]
-    $VER_PAUSE_TOML
-    [plugins."io.containerd.grpc.v1.cri".containerd]
-      [plugins."io.containerd.grpc.v1.cri".containerd.runtimes]
-        [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
-          runtime_type = "io.containerd.runc.v2"
-          [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
-            SystemdCgroup = true
-EOF
-
-  if [ $([ -s /etc/containerd/config.toml ]; echo $?) == 0 ]; then
-    my_logger INFO "Successfully wrote parameters to containerd config file /etc/containerd/config.toml" QUIET
-  else
-    my_logger ERROR "Failed writing parameters to containerd config file /etc/containerd/config.toml" QUIET
-  fi
-
-  my_logger INFO "Restarting the containerd service." QUIET
-  systemctl restart containerd
-  systemctl status containerd.service --no-pager >> $LOG_FILE_NAME
-
-  sleep 2
 
   echo -e "\n${white}                                                                                            # END # "
   echo -e "${green}################################################################################################### ${reset}"
@@ -696,7 +720,7 @@ if [ $REPLY != 3 ]; then     # If NFS Server then skip KUBERNETES CLUSTER CONFIG
 
   if [ $REPLY = 1 ]; then     # Control Plane node
     my_logger INFO "Invoking kubeadm init to initialize the Kubernetes Control Plane Node." NL_POST
-    kubeadm init --kubernetes-version=$VER_K8S  --pod-network-cidr=10.244.0.0/16 --service-cidr=10.96.0.0/16 --v=1 | tee -a $LOG_FILE_NAME; echo "" >> $LOG_FILE_NAME
+    kubeadm init --kubernetes-version=$VER_K8S  --pod-network-cidr=$POD_NETWORK_CIDR --service-cidr=$SVC_NETWORK_CIDR --v=1 | tee -a $LOG_FILE_NAME; echo "" >> $LOG_FILE_NAME
 
     mkdir -p $HOME/.kube > /dev/null
     cp -i /etc/kubernetes/admin.conf $HOME/.kube/config > /dev/null
@@ -932,6 +956,40 @@ EOF
     my_logger ERROR "Failed deploying Kubeapps Helm Chart." QUIET
   fi
 
+  # 2024.05.10: FIX FOR KUBEAPPS V2.10.0 (postgresql gets "00MKilled")
+  # BUG ref. https://github.com/vmware-tanzu/kubeapps/issues/7702
+  # BUG ref. https://github.com/bitnami/charts/issues/25183
+  # INFO ref. https://github.com/vmware-tanzu/kubeapps/blob/main/chart/kubeapps/values.yaml (line 1765)
+  # INFO ref. https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+
+  my_logger INFO "Retrieving current PostgreSQL StatefulSet resource Requests and Limits:" NL_PRE
+  kubectl describe statefulset -n kubeapps kubeapps-postgresql | egrep -A3 'Limits|Requests' >> $LOG_FILE_NAME
+
+  # Checking whether current PostgreSQL StatefulSet Requests and Limits resource values for cpu and memory are less than the Helm Chart required values
+  # "micro" preset values:
+  #   "requests" (dict "cpu" "250m" "memory" "256Mi" "ephemeral-storage" "50Mi")
+  #   "limits" (dict "cpu" "375m" "memory" "384Mi" "ephemeral-storage" "1024Mi")
+
+  # Storing reference values in an array: [0]=Limits(cpu) - [1]=Limits(memory) - [2]=Requests(cpu) - [3]=Requests(memory)
+  declare MICRO=(375 384 250 256)
+
+  # Storing current values in an array:   [0]=Limits(cpu) - [1]=Limits(memory) - [2]=Requests(cpu) - [3]=Requests(memory)
+  readarray -t CURRENT < <(kubectl describe statefulset -n kubeapps kubeapps-postgresql | egrep "cpu|memory" | grep -o '[0-9]\+')
+
+  for ((i = 0; i < ${#CURRENT[@]}; i++)); do 
+    if [[ ${CURRENT[$i]} < ${MICRO[$i]} ]]; then NEEDS_HACK=true; fi;
+  done
+
+  if [[ $NEEDS_HACK = true ]]; then
+    my_logger INFO "Current PostgreSQL StatefulSet resource Requests and Limits are below the required values: APPLYING HACK!" NL_PRE;
+    kubectl -n kubeapps patch statefulset kubeapps-postgresql --patch '{"spec":{"template":{"spec":{"containers":[{"name":"postgresql", "resources":{"requests":{"cpu":"250m", "memory":"256Mi"}, "limits":{"cpu":"375m", "memory":"384Mi"}}}]}}}}';
+    my_logger INFO "New PostgreSQL StatefulSet resource Requests and Limits:" QUIET_NL_PRE;
+    kubectl describe statefulset -n kubeapps kubeapps-postgresql | egrep -A3 'Limits|Requests' >> $LOG_FILE_NAME
+  else
+    my_logger INFO "Current PostgreSQL StatefulSet resource Requests and Limits are good: NO HACK REQUIRED!" NL_PRE
+  fi
+  # END FIX
+
   export METALLB_SERVICE_IP=$(kubectl get svc --namespace $KUBEAPPS_NAMESPACE kubeapps --template "{{ range (index .status.loadBalancer.ingress 0) }}{{ . }}{{ end }}")
   my_logger INFO "Fetched the Kubeapps Service IP Address (type LoadBalancer) as $METALLB_SERVICE_IP" QUIET
 
@@ -978,11 +1036,11 @@ echo -e "            Kubeapps login token stored on Control Plane node in /root/
 echo -e "\n"
 fi
 
-if [[ ! -z $(cat $LOG_FILE_NAME | grep ERROR) ]]; then
-  echo -e "${lired} --> FOUND $(cat $LOG_FILE_NAME | grep ERROR | wc -l) ERROR(S), check log file $LOG_FILE_NAME${reset}"
+if [[ ! -z $(cat $LOG_FILE_NAME | grep "1;31mERROR") ]]; then
+  echo -e "${lired} --> FOUND $(cat $LOG_FILE_NAME | grep "1;31mERROR" | wc -l) ERROR(S), check log file $LOG_FILE_NAME${reset}"
 fi
-if [[ ! -z $(cat $LOG_FILE_NAME | grep WARNING) ]]; then
-  echo -e "${yellw} --> FOUND $(cat $LOG_FILE_NAME | grep WARNING | wc -l) WARNING(S), check log file $LOG_FILE_NAME${reset}"
+if [[ ! -z $(cat $LOG_FILE_NAME | grep "1;33mWARNING") ]]; then
+  echo -e "${yellw} --> FOUND $(cat $LOG_FILE_NAME | grep "1;33mWARNING" | wc -l) WARNING(S), check log file $LOG_FILE_NAME${reset}"
 fi
 
 echo -e "\n${green}#                                                                                                 # "
